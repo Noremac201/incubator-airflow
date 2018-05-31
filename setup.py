@@ -146,6 +146,7 @@ emr = ['boto3>=1.0.0']
 gcp_api = [
     'httplib2',
     'google-api-python-client>=1.5.0, <1.6.0',
+    'google-cloud-container>=0.1.1',
     'oauth2client>=2.0.2, <2.1.0',
     'PyOpenSSL',
     'pandas-gbq'
