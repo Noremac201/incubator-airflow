@@ -116,6 +116,76 @@ class TestHelpers(unittest.TestCase):
                                                   2),
                          14)
 
+class HelpersTest(unittest.TestCase):
+    class TestObjIter(object):
+        def __iter__(self):
+            pass
+
+    class TestObjStrNoIter(str):
+        pass
+
+    class TestObjIterStr(str):
+        def __iter__(self):
+            pass
+
+    class TestObjNoIter(object):
+        pass
+
+    def test_as_tuple_iter(self):
+        iter_obj = HelpersTest.TestObjIter()
+        as_tup = helpers.as_tuple(iter_obj)
+        self.assertTupleEqual((iter_obj,), as_tup)
+
+    def test_as_tuple_no_iter(self):
+        iter_obj = HelpersTest.TestObjNoIter()
+        as_tup = helpers.as_tuple(iter_obj)
+        self.assertTupleEqual(([iter_obj],), as_tup)
+
+    def test_is_in(self):
+        from airflow.utils import helpers
+        # `is_in` expects an object, and a list as input
+
+        d = {'test': 1}
+        l = ['test', 1, dict()]
+        i = 3
+        big_i = 2 ** 31
+        s = 'test_str'
+        t = ('test', 'tuple')
+
+        test_list = [d, l, i, s, t]
+
+        # Test that integers are referenced as the same object
+        self.assertTrue(helpers.is_in(i, test_list))
+        self.assertTrue(helpers.is_in(3, test_list))
+
+        # python caches small integers, so i is 3 will be True,
+        # but `big_i is 2 ** 31` is False.
+        self.assertTrue(helpers.is_in(big_i, test_list))
+        self.assertFalse(helpers.is_in(2 ** 31, test_list))
+
+        self.assertTrue(helpers.is_in(d, test_list))
+        self.assertFalse(helpers.is_in({'test': 1}, test_list))
+
+        self.assertTrue(helpers.is_in(l, test_list))
+        self.assertFalse(helpers.is_in(['test', 1, dict()], test_list))
+
+        self.assertTrue(helpers.is_in(s, test_list))
+        self.assertTrue(helpers.is_in('test_str', test_list))
+        bad_str = 'test_'
+        bad_str += 'str'
+        self.assertFalse(helpers.is_in(bad_str, test_list))
+
+        self.assertTrue(helpers.is_in(t, test_list))
+        self.assertTrue(helpers.is_in(('test', 'tuple'), test_list))
+        bad_tup = ('test', 'tuple', 'hello')
+        self.assertFalse(helpers.is_in(bad_tup[:2], test_list))
+
+    def test_is_container(self):
+        self.assertTrue(helpers.is_container(HelpersTest.TestObjIter()))
+        self.assertFalse(helpers.is_container(HelpersTest.TestObjNoIter))
+        self.assertFalse(helpers.is_container(HelpersTest.TestObjIterStr))
+        self.assertFalse(helpers.is_container(HelpersTest.TestObjStrNoIter()))
+
 
 if __name__ == '__main__':
     unittest.main()
